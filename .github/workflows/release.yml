@@ -1,0 +1,39 @@
+name: Build and Release TimeNote
+
+on:
+  push:
+    tags:
+      - 'v*'  # 當你推送 v1.0、v1.1 等 tag 時觸發
+
+jobs:
+  build-deb:
+    name: Build .deb package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install build tools
+        run: |
+          sudo apt update
+          sudo apt install -y dpkg-dev fakeroot
+
+      - name: Build .deb package
+        run: |
+          mkdir -p build
+          cp -r * build/
+          cd build
+          dpkg-deb --build . timenote_1.0_all.deb
+
+      - name: Upload Release Artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/timenote_1.0_all.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
